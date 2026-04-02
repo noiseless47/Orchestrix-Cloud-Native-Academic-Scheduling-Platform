@@ -150,7 +150,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 ---
 
 ### Step 3 — Frontend (Next.js + Tailwind)
-![image]()
+![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/22820b9ce2193bf95f03cf716eeed19188d9ccd2/assets/Screenshot%202026-04-01%20171146.png)
 **Stack:** Next.js 16 (App Router), React 18, TypeScript 5.4, Tailwind CSS 3, Zustand 4 (global state), TanStack Query 5 (server state / caching), Framer Motion (animations), jsPDF + html2canvas (PDF export).
 
 Key decisions:
