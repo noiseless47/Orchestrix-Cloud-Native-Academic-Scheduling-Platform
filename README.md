@@ -133,7 +133,7 @@ Created the monorepo structure with two separate services (`backend/`, `frontend
 ---
 
 ### Step 2 — Backend (Express + MongoDB)
-![image]()
+![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/4b266c717a4f8018a058b027a2fe44439ae7f1f8/assets/Screenshot%202026-04-02%20161404.png)
 **Stack:** Express 4, Mongoose 8, Morgan (HTTP logger), dotenv, CORS.
 
 Key decisions:
