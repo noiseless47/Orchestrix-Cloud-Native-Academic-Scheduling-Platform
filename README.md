@@ -454,7 +454,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN }));
 ---
 
 ## Environment Variables
-![image]()
+![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/36bdf2a4b3afae263c233c35be1bbb36a9bbc226/assets/Screenshot%202026-04-01%20171820.png)
 ### Backend
 
 | Variable | Required | Default | Description |
