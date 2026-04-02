@@ -371,7 +371,7 @@ volumeClaimTemplates:
 ---
 
 ### Problem 5 — HPA not scaling (unknown CPU metrics)
-![image]()
+![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/389d5264fc50a380b1cf38c220b49377fb178e08/assets/Screenshot%202026-04-01%20172614.png)
 **Symptom:** `kubectl get hpa` showed `<unknown>/70%` for CPU and never triggered scaling.
 
 **Root Cause:** HPA requires the Kubernetes Metrics Server to be running, and pods must have `resources.requests.cpu` defined. Neither was configured.
