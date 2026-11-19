@@ -1,18 +1,23 @@
 import { DEFAULT_PERIODS_PER_DAY } from "../utils/constants.js";
 import { generateTimetable } from "../utils/scheduler.js";
 import { Routine } from "../models/Routine.js";
-import { Section } from "../models/Section.js";
-import { Subject } from "../models/Subject.js";
 import { TeacherAssignmentHistory } from "../models/TeacherAssignmentHistory.js";
 import { DAYS } from "../utils/constants.js";
+
+async function fetchJson(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error(`Request failed: ${response.status} ${url}`);
+  return response.json();
+}
 
 export const routineService = {
   async generateRoutine({ department, year, periodsPerDay = DEFAULT_PERIODS_PER_DAY, sectionsInput }) {
     let sections = sectionsInput;
     if (!sections || !Array.isArray(sections) || sections.length === 0) {
-      const fromDb = await Section.find({ department, year }).lean();
-      const subjectIds = fromDb.flatMap((s) => s.subjects.map((x) => x.subjectId));
-      const subjects = await Subject.find({ _id: { $in: subjectIds } }).lean();
+      const sectionsUrl = process.env.SECTIONS_URL || "http://sections:5103";
+      const subjectsUrl = process.env.SUBJECTS_URL || "http://subjects:5101";
+      const fromDb = await fetchJson(`${sectionsUrl}/api/sections?department=${encodeURIComponent(department)}&year=${year}`);
+      const subjects = await fetchJson(`${subjectsUrl}/api/subjects?department=${encodeURIComponent(department)}`);
       const subjMap = new Map(subjects.map((s) => [String(s._id), s]));
       sections = fromDb.map((s) => ({
         name: s.name,
@@ -36,7 +41,8 @@ export const routineService = {
     });
     if (missingSubjectIds.length) {
       const uniq = [...new Set(missingSubjectIds)];
-      const subjects = await Subject.find({ _id: { $in: uniq } }).lean();
+      const subjectsUrl = process.env.SUBJECTS_URL || "http://subjects:5101";
+      const subjects = await fetchJson(`${subjectsUrl}/api/subjects`);
       const subjMap = new Map(subjects.map((s) => [String(s._id), s]));
       sections.forEach((sec) => {
         sec.subjects.forEach((s) => {

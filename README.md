@@ -201,10 +201,10 @@ CMD ["node", "server.js"]
 
 `docker-compose.yml` wires all three services together for local development and testing. Key design decisions:
 
-- **Two networks**: `internal` (backend ↔ mongo, never exposed externally) and `external` (frontend only). This mirrors production network segmentation.
+- **Two networks**: `internal` (backend ↔ mongo) and `external` (browser-facing frontend and local API). MongoDB remains internal-only.
 - **Health-check chained startup**: `backend` waits for `mongo` to be healthy; `frontend` waits for `backend` to be healthy. Eliminates race-condition crashes on first `docker compose up`.
 - **`mongo-init.js`** mounted read-only at `/docker-entrypoint-initdb.d/` to auto-create the app DB, user, and indexes on first boot.
-- Port `5000` (backend) is only `expose`d (container-to-container), never published to the host. Only port `3000` (frontend) is published.
+- Port `4000` on the host forwards to the backend's container port `5000` so browser requests from the local frontend can reach the API. Port `3000` serves the frontend.
 
 ```yaml
 healthcheck:
@@ -496,15 +496,45 @@ cd routineops-platform
 
 # 2. Create .env file
 cp .env.example .env
-# Edit .env and fill in MONGO_ROOT_PASS and JWT_SECRET
+# Edit .env and replace the example local secrets if needed
 
 # 3. Start all services
 docker compose up --build
 
 # App available at:
 #   Frontend: http://localhost:3000
-#   Backend:  http://localhost:5000 (internal only, not exposed)
+#   Backend:  http://localhost:4000/api/health
 ```
+
+## Microservices Architecture
+
+The local runtime now uses an API gateway and independently running domain services:
+
+- `gateway` — public entry point on port `4000`; routes and health-checks domain services
+- `subjects` — subject CRUD on port `5101`
+- `teachers` — teacher CRUD on port `5102`
+- `sections` — section and assignment CRUD on port `5103`
+- `routines` — timetable generation and retrieval on port `5104`
+- `backend` — compatibility monolith exposed on port `5001`
+
+All existing frontend API URLs remain unchanged. The frontend continues to call port `4000`, while the gateway proxies requests to the appropriate domain service.
+
+## Database-per-Service
+
+The domain services use dedicated MongoDB containers and volumes:
+
+- `mongo-subjects` / `mongo_subjects_data`
+- `mongo-teachers` / `mongo_teachers_data`
+- `mongo-sections` / `mongo_sections_data`
+- `mongo-routines` / `mongo_routines_data`
+
+The original `mongo` container remains as a compatibility/migration source. Existing records can be copied without overwriting by `_id` using:
+
+```powershell
+docker compose --profile migration run --rm migrate
+```
+
+The migration is idempotent and preserves the existing MongoDB ObjectIds. After migration, the domain services continue to work when the compatibility MongoDB and legacy backend are stopped.
 
 To run services individually for development:
 

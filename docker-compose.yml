@@ -22,7 +22,216 @@ services:
       retries: 5
       start_period: 20s
 
-  # ── Express backend ───────────────────────────────────────────────────────
+  mongo-subjects:
+    image: mongo:7-jammy
+    container_name: snu-mongo-subjects
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:?MONGO_ROOT_PASS is required}
+    volumes:
+      - mongo_subjects_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mongo-teachers:
+    image: mongo:7-jammy
+    container_name: snu-mongo-teachers
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:?MONGO_ROOT_PASS is required}
+    volumes:
+      - mongo_teachers_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mongo-sections:
+    image: mongo:7-jammy
+    container_name: snu-mongo-sections
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:?MONGO_ROOT_PASS is required}
+    volumes:
+      - mongo_sections_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mongo-routines:
+    image: mongo:7-jammy
+    container_name: snu-mongo-routines
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:?MONGO_ROOT_PASS is required}
+    volumes:
+      - mongo_routines_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── API gateway ──────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snu-gateway
+    restart: unless-stopped
+    command: ["node", "src/gateway.js"]
+    depends_on:
+      subjects:
+        condition: service_healthy
+      teachers:
+        condition: service_healthy
+      sections:
+        condition: service_healthy
+      routines:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 5000
+      SUBJECTS_URL: http://subjects:5101
+      TEACHERS_URL: http://teachers:5102
+      SECTIONS_URL: http://sections:5103
+      ROUTINES_URL: http://routines:5104
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    networks:
+      - internal
+      - external
+    ports:
+      - "${BACKEND_PORT:-4000}:5000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  subjects:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snu-subjects
+    restart: unless-stopped
+    command: ["node", "src/service.js"]
+    depends_on:
+      mongo-subjects:
+        condition: service_healthy
+    environment:
+      DOMAIN: subjects
+      PORT: 5101
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-subjects:27017/routine_subjects?authSource=admin
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5101/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  teachers:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snu-teachers
+    restart: unless-stopped
+    command: ["node", "src/service.js"]
+    depends_on:
+      mongo-teachers:
+        condition: service_healthy
+    environment:
+      DOMAIN: teachers
+      PORT: 5102
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-teachers:27017/routine_teachers?authSource=admin
+      SUBJECTS_URL: http://subjects:5101
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5102/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  sections:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snu-sections
+    restart: unless-stopped
+    command: ["node", "src/service.js"]
+    depends_on:
+      mongo-sections:
+        condition: service_healthy
+    environment:
+      DOMAIN: sections
+      PORT: 5103
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-sections:27017/routine_sections?authSource=admin
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5103/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  routines:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snu-routines
+    restart: unless-stopped
+    command: ["node", "src/service.js"]
+    depends_on:
+      mongo-routines:
+        condition: service_healthy
+    environment:
+      DOMAIN: routines
+      PORT: 5104
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-routines:27017/routine_routines?authSource=admin
+      SUBJECTS_URL: http://subjects:5101
+      SECTIONS_URL: http://sections:5103
+      TEACHERS_URL: http://teachers:5102
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5104/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Compatibility monolith: retained on port 5001 for existing deployments.
   backend:
     build:
       context: ./backend
@@ -40,16 +249,16 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
     networks:
       - internal
+      - external
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 10s
-    # Never expose port 5000 to the internet — only the frontend talks to it
-    # Remove this expose block in production and use the Nginx proxy instead
-    expose:
-      - "5000"
+    # Publish the API for the browser-based frontend during local development.
+    ports:
+      - "${LEGACY_BACKEND_PORT:-5001}:5000"
 
   # ── Next.js frontend ──────────────────────────────────────────────────────
   frontend:
@@ -58,20 +267,47 @@ services:
       dockerfile: Dockerfile
       args:
         # Baked into the JS bundle at build time — must not be secret
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:5000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
     container_name: snu-frontend
     restart: unless-stopped
     depends_on:
-      backend:
+      gateway:
         condition: service_healthy
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:5000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     networks:
       - internal
       - external
+
+  migrate:
+    profiles: ["migration"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: snu-migrate
+    command: ["node", "src/migrate-databases.js"]
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mongo-subjects:
+        condition: service_healthy
+      mongo-teachers:
+        condition: service_healthy
+      mongo-sections:
+        condition: service_healthy
+      mongo-routines:
+        condition: service_healthy
+    environment:
+      MONGO_SOURCE_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo:27017/snu_routine?authSource=admin
+      SUBJECTS_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-subjects:27017/routine_subjects?authSource=admin
+      TEACHERS_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-teachers:27017/routine_teachers?authSource=admin
+      SECTIONS_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-sections:27017/routine_sections?authSource=admin
+      ROUTINES_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS}@mongo-routines:27017/routine_routines?authSource=admin
+    networks:
+      - internal
 
 networks:
   internal:
@@ -82,4 +318,12 @@ networks:
 
 volumes:
   mongo_data:
+    driver: local
+  mongo_subjects_data:
+    driver: local
+  mongo_teachers_data:
+    driver: local
+  mongo_sections_data:
+    driver: local
+  mongo_routines_data:
     driver: local

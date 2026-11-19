@@ -1,5 +1,10 @@
 import { Teacher } from "../models/Teacher.js";
-import { Section } from "../models/Section.js";
+async function fetchSubjects() {
+  const url = process.env.SUBJECTS_URL || "http://subjects:5101";
+  const response = await fetch(`${url}/api/subjects`, { signal: AbortSignal.timeout(5000) });
+  if (!response.ok) return [];
+  return response.json();
+}
 
 export const teacherService = {
   async createTeacher({ name, department, email, subjectIds }) {
@@ -8,24 +13,16 @@ export const teacherService = {
 
   async listTeachers(department) {
     const query = department ? { department } : {};
-    const teachers = await Teacher.find(query).populate("subjects", "subjectName subjectCode").lean();
-
-    const sections = await Section.find(query).populate("subjects.subjectId", "subjectName subjectCode").lean();
-
-    const assignedSubjectsMap = new Map();
-    for (const section of sections) {
-      for (const subject of section.subjects) {
-        const teacherId = subject.teacherId.toString();
-        if (!assignedSubjectsMap.has(teacherId)) {
-          assignedSubjectsMap.set(teacherId, []);
-        }
-        assignedSubjectsMap.get(teacherId).push(subject.subjectId);
-      }
-    }
+    const teachers = await Teacher.find(query).lean();
+    const subjects = await fetchSubjects();
+    const subjectMap = new Map(subjects.map((subject) => [String(subject._id), subject]));
 
     return teachers.map((teacher) => ({
       ...teacher,
-      assignedSubjects: assignedSubjectsMap.get(teacher._id.toString()) || [],
+      subjects: (teacher.subjects || [])
+        .map((subjectId) => subjectMap.get(String(subjectId)))
+        .filter(Boolean),
+      assignedSubjects: [],
     }));
   },
 

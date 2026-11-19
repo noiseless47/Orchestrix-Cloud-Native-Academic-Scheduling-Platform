@@ -5,7 +5,10 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "gateway": "node src/gateway.js",
+    "service": "node src/service.js",
+    "migrate": "node src/migrate-databases.js"
   },
   "dependencies": {
     "cors": "2.8.5",
