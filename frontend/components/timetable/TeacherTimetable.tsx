@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import WeeklyTable from "./WeeklyTable";
 import { useSchedule } from "@/hooks/useSchedule";
 import { Loader } from "@/components/ui/Loader";
@@ -12,7 +12,7 @@ export default function TeacherTimetable() {
   const { list } = useSchedule();
   const { list: teacherList } = useTeachers();
   const [teacherId, setTeacherId] = useState<string>("");
-  const sections = list.data?.sections ?? [];
+  const sections = useMemo(() => list.data?.sections ?? [], [list.data?.sections]);
   const periodsPerDay = list.data?.periodsPerDay ?? 6;
 
   const teacherOptions = useMemo(() => {
@@ -33,18 +33,10 @@ export default function TeacherTimetable() {
     return Array.from(map.values());
   }, [sections, teacherList.data]);
 
-  useEffect(() => {
-    if (!teacherOptions.length) {
-      setTeacherId("");
-      return;
-    }
-    if (!teacherOptions.find((t) => t.teacherId === teacherId)) {
-      setTeacherId(teacherOptions[0].teacherId);
-    }
-  }, [teacherOptions, teacherId]);
+  const activeTeacherId = teacherOptions.find((teacher) => teacher.teacherId === teacherId)?.teacherId ?? teacherOptions[0]?.teacherId ?? "";
 
   const tableData = useMemo(() => {
-    if (!teacherId) return [];
+    if (!activeTeacherId) return [];
     return DAYS.map((day) => {
       return Array.from({ length: periodsPerDay }, (_, periodIndex) => {
         const slot = sections
@@ -53,14 +45,14 @@ export default function TeacherTimetable() {
               ? { ...(sec.timetable[day][periodIndex] as any), sectionName: sec.name }
               : null
           )
-          .find((slot: any) => slot?.teacherId === teacherId);
+          .find((slot: any) => slot?.teacherId === activeTeacherId);
         return {
           subject: slot ? `${slot.subjectName ?? slot.subjectCode ?? ""} (${slot.sectionName})` : "-",
           teacher: slot?.teacherName ?? slot?.teacherId ?? "",
         };
       });
     });
-  }, [teacherId, periodsPerDay, sections]);
+  }, [activeTeacherId, periodsPerDay, sections]);
 
   if (list.isLoading) return <Loader />;
 
@@ -80,7 +72,7 @@ export default function TeacherTimetable() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-4">
-        <Select label="Teacher" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+        <Select label="Teacher" value={activeTeacherId} onChange={(e) => setTeacherId(e.target.value)}>
           {teacherOptions.map((teacher) => (
             <option key={teacher.teacherId} value={teacher.teacherId}>
               {teacher.teacherName}

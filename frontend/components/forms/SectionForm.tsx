@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useState } from "react";
 
-export default function SectionForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+export default function SectionForm({ onSubmit, isPending = false }: { onSubmit: (data: any) => void; isPending?: boolean }) {
   const [department, setDepartment] = useState("");
   const [sectionName, setSectionName] = useState("");
   const [year, setYear] = useState("1");
@@ -19,7 +19,7 @@ export default function SectionForm({ onSubmit }: { onSubmit: (data: any) => voi
       <Input label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} required />
       <Input label="Section name" value={sectionName} onChange={(e) => setSectionName(e.target.value)} required />
       <Input label="Year" type="number" value={year} onChange={(e) => setYear(e.target.value)} required />
-      <Button type="submit">Save</Button>
+      <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save section"}</Button>
     </form>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import WeeklyTable from "./WeeklyTable";
 import { useSchedule } from "@/hooks/useSchedule";
 import { Loader } from "@/components/ui/Loader";
@@ -16,18 +16,8 @@ export default function SectionTimetable() {
   const [isExporting, setIsExporting] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const sections = list.data?.sections ?? [];
+  const sections = useMemo(() => list.data?.sections ?? [], [list.data?.sections]);
   const periodsPerDay = list.data?.periodsPerDay ?? 6;
-
-  useEffect(() => {
-    if (!sections.length) {
-      setSelectedSection("");
-      return;
-    }
-    if (!sections.find((sec: any) => sec.name === selectedSection)) {
-      setSelectedSection(sections[0].name);
-    }
-  }, [sections, selectedSection]);
 
   const currentSection = useMemo(() => {
     return sections.find((sec: any) => sec.name === selectedSection) ?? sections[0];
@@ -89,7 +79,7 @@ export default function SectionTimetable() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-4 justify-between">
         <div className="flex flex-wrap items-center gap-4">
-          <Select label="Section" value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+          <Select label="Section" value={currentSection?.name ?? ""} onChange={(e) => setSelectedSection(e.target.value)}>
             {sections.map((sec: any) => (
               <option key={sec.name} value={sec.name}>
                 {sec.name}

@@ -5,9 +5,7 @@ type GlobalState = {
   setYear: (y: string | null) => void;
 }
 
-type SetState<T> = (partial: Partial<T> | ((state: T) => Partial<T>), replace?: boolean) => void;
-
-export const useGlobalStore = create<GlobalState>((set: SetState<GlobalState>) => ({
+export const useGlobalStore = create<GlobalState>((set) => ({
   year: null,
   setYear: (y: string | null) => set({ year: y }),
 }));

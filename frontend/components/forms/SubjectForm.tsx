@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useState } from "react";
 
-export default function SubjectForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+export default function SubjectForm({ onSubmit, isPending = false }: { onSubmit: (data: any) => void; isPending?: boolean }) {
   const [subjectName, setSubjectName] = useState("");
   const [subjectCode, setSubjectCode] = useState("");
   const [department, setDepartment] = useState("");
@@ -19,7 +19,7 @@ export default function SubjectForm({ onSubmit }: { onSubmit: (data: any) => voi
       <Input label="Subject Name" value={subjectName} onChange={(e) => setSubjectName(e.target.value)} required />
       <Input label="Subject Code" value={subjectCode} onChange={(e) => setSubjectCode(e.target.value)} required />
       <Input label="Department" value={department} onChange={(e) => setDepartment(e.target.value)} required />
-      <Button type="submit" variant="primary">Save</Button>
+      <Button type="submit" variant="primary" disabled={isPending}>{isPending ? "Saving…" : "Save subject"}</Button>
     </form>
   );
 }

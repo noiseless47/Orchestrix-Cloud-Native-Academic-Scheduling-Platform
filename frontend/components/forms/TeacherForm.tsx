@@ -5,7 +5,7 @@ import { Select } from "@/components/ui/Select";
 import { useSubjects } from "@/hooks/useSubjects";
 import { useState } from "react";
 
-export default function TeacherForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+export default function TeacherForm({ onSubmit, isPending = false }: { onSubmit: (data: any) => void; isPending?: boolean }) {
   const { list } = useSubjects();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -38,7 +38,7 @@ export default function TeacherForm({ onSubmit }: { onSubmit: (data: any) => voi
           </option>
         ))}
       </Select>
-      <Button type="submit">Save</Button>
+      <Button type="submit" disabled={isPending}>{isPending ? "Saving…" : "Save teacher"}</Button>
     </form>
   );
 }

@@ -5,9 +5,7 @@ type UIState = {
   setSidebar: (open: boolean) => void;
 }
 
-type SetState<T> = (partial: Partial<T> | ((state: T) => Partial<T>), replace?: boolean) => void;
-
-export const useUIStore = create<UIState>((set: SetState<UIState>) => ({
+export const useUIStore = create<UIState>((set) => ({
   sidebarOpen: true,
   setSidebar: (open: boolean) => set({ sidebarOpen: open })
 }));

@@ -16,9 +16,7 @@ type ScheduleState = {
   setAssignments: (a: Assignment[]) => void;
 }
 
-type SetState<T> = (partial: Partial<T> | ((state: T) => Partial<T>), replace?: boolean) => void;
-
-export const useScheduleStore = create<ScheduleState>((set: SetState<ScheduleState>) => ({
+export const useScheduleStore = create<ScheduleState>((set) => ({
   periodsPerDay: 6,
   setPeriods: (n: number) => set({ periodsPerDay: n }),
   assignments: [],

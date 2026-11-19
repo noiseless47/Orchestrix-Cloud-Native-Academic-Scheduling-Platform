@@ -6,26 +6,28 @@ import { Button } from "@/components/ui/Button";
 import { useState } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Subject } from "@/lib/types";
+import { useToast } from "@/hooks/useToast";
 
 export default function SubjectsPage() {
   const { list, createM } = useSubjects();
   const [showForm, setShowForm] = useState(false);
+  const { toast } = useToast();
 
   return (
     <div className="space-y-4">
-        <PageHeader title="Subjects">
+        <PageHeader title="Subjects" description="Maintain the department catalog used for teaching assignments.">
           <Button onClick={() => setShowForm((v) => !v)}>Add Subject</Button>
         </PageHeader>
         {showForm && (
           <div className="rounded-md border bg-white p-4">
-            <SubjectForm onSubmit={(data) => { createM.mutate(data); setShowForm(false); }} />
+            <SubjectForm isPending={createM.isPending} onSubmit={(data) => createM.mutate(data, { onSuccess: () => { setShowForm(false); toast("Subject added successfully."); }, onError: () => toast("Could not add subject. Check the form and try again.", "error") })} />
           </div>
         )}
         {list.isError && (
           <div className="rounded-md border bg-white p-4">
             <div className="text-sm text-red-600 mb-2">Failed to load subjects.</div>
             <div className="text-xs text-gray-600 mb-3">{String((list.error as any)?.message ?? "Unknown error")}</div>
-            <Button variant="secondary" onClick={() => list.refetch()}>Retry</Button>
+            <Button variant="secondary" onClick={() => list.refetch().then((result) => result.isError ? toast("Could not load subjects. Please retry.", "error") : toast("Subjects refreshed."))}>Retry</Button>
           </div>
         )}
         <DataTable<Subject>
