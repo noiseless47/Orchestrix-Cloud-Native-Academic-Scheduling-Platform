@@ -1,85 +1,61 @@
 "use client";
+
 import { useMemo, useState } from "react";
 import WeeklyTable from "./WeeklyTable";
-import { useSchedule } from "@/hooks/useSchedule";
-import { Loader } from "@/components/ui/Loader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Select } from "@/components/ui/Select";
 import { DAYS } from "@/lib/helpers";
 import { useTeachers } from "@/hooks/useTeachers";
+import type { Routine, Teacher } from "@/lib/types";
 
-export default function TeacherTimetable() {
-  const { list } = useSchedule();
+type TeacherOption = { teacherId: string; teacherName: string };
+
+export default function TeacherTimetable({ routine }: { routine: Routine }) {
   const { list: teacherList } = useTeachers();
-  const [teacherId, setTeacherId] = useState<string>("");
-  const sections = useMemo(() => list.data?.sections ?? [], [list.data?.sections]);
-  const periodsPerDay = list.data?.periodsPerDay ?? 6;
+  const [teacherId, setTeacherId] = useState("");
+  const sections = routine.sections ?? [];
+  const periodsPerDay = routine.periodsPerDay ?? 6;
 
-  const teacherOptions = useMemo(() => {
-    const map = new Map();
-    const teachersFromApi = teacherList.data ?? [];
-    sections.forEach((sec: any) => {
-      DAYS.forEach((day) => {
-        const slots = sec.timetable?.[day] ?? [];
-        slots.forEach((slot: any) => {
-          if (slot?.teacherId) {
-            const fallback = teachersFromApi.find((t: any) => String(t._id) === String(slot.teacherId));
-            const teacherName = slot.teacherName ?? fallback?.name ?? slot.teacherId;
-            if (!map.has(slot.teacherId)) map.set(slot.teacherId, { teacherId: slot.teacherId, teacherName });
-          }
-        });
-      });
-    });
-    return Array.from(map.values());
+  const teacherOptions = useMemo<TeacherOption[]>(() => {
+    const options = new Map<string, string>();
+    const teachersFromApi: Teacher[] = teacherList.data ?? [];
+    for (const section of sections) {
+      for (const day of DAYS) {
+        for (const slot of section.timetable?.[day] ?? []) {
+          if (!slot?.teacherId) continue;
+          const fallback = teachersFromApi.find((teacher) => String(teacher._id) === String(slot.teacherId));
+          options.set(String(slot.teacherId), slot.teacherName ?? fallback?.name ?? String(slot.teacherId));
+        }
+      }
+    }
+    return [...options].map(([id, name]) => ({ teacherId: id, teacherName: name })).sort((a, b) => a.teacherName.localeCompare(b.teacherName));
   }, [sections, teacherList.data]);
 
   const activeTeacherId = teacherOptions.find((teacher) => teacher.teacherId === teacherId)?.teacherId ?? teacherOptions[0]?.teacherId ?? "";
-
   const tableData = useMemo(() => {
     if (!activeTeacherId) return [];
-    return DAYS.map((day) => {
-      return Array.from({ length: periodsPerDay }, (_, periodIndex) => {
-        const slot = sections
-          .map((sec: any) =>
-            sec.timetable?.[day]?.[periodIndex]
-              ? { ...(sec.timetable[day][periodIndex] as any), sectionName: sec.name }
-              : null
-          )
-          .find((slot: any) => slot?.teacherId === activeTeacherId);
-        return {
-          subject: slot ? `${slot.subjectName ?? slot.subjectCode ?? ""} (${slot.sectionName})` : "-",
-          teacher: slot?.teacherName ?? slot?.teacherId ?? "",
-        };
-      });
-    });
+    return DAYS.map((day) => Array.from({ length: periodsPerDay }, (_, periodIndex) => {
+      const slot = sections.map((section) => {
+        const item = section.timetable?.[day]?.[periodIndex];
+        return item ? { ...item, sectionName: section.name } : null;
+      }).find((item) => item?.teacherId === activeTeacherId);
+      return {
+        subject: slot ? `${slot.subjectName ?? slot.subjectCode ?? "Class"} (Section ${slot.sectionName})` : "-",
+        teacher: slot?.teacherName ?? slot?.teacherId ?? "",
+      };
+    }));
   }, [activeTeacherId, periodsPerDay, sections]);
 
-  if (list.isLoading) return <Loader />;
-
-  if (list.isError)
-    return (
-      <EmptyState title="Failed to load routine" description={(list.error as any)?.message ?? "Please try again."}>
-        <button className="text-sm text-black underline" onClick={() => list.refetch()}>Retry</button>
-      </EmptyState>
-    );
-
-  if (!sections.length)
-    return <EmptyState title="No routine available" description="Generate a routine to view the timetable." />;
-
-  if (!teacherOptions.length)
-    return <EmptyState title="No teacher assignments" description="Assign teachers to classes to view their schedules." />;
+  if (!sections.length) return <EmptyState title="No sections in this timetable" description="Generate a schedule with at least one configured section." />;
+  if (!teacherOptions.length) return <EmptyState title="No teacher assignments" description="This batch timetable has no scheduled teacher assignments." />;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4">
-        <Select label="Teacher" value={activeTeacherId} onChange={(e) => setTeacherId(e.target.value)}>
-          {teacherOptions.map((teacher) => (
-            <option key={teacher.teacherId} value={teacher.teacherId}>
-              {teacher.teacherName}
-            </option>
-          ))}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <Select label="Teacher" value={activeTeacherId} onChange={(event) => setTeacherId(event.target.value)}>
+          {teacherOptions.map((teacher) => <option key={teacher.teacherId} value={teacher.teacherId}>{teacher.teacherName}</option>)}
         </Select>
-        <div className="text-sm text-gray-600">{list.data?.department} • Year {list.data?.year}</div>
+        <p className="text-sm text-gray-600">{routine.department} · Year {routine.year} · Semester {routine.semester ?? "—"} · Batch {routine.batchYear ?? "—"}</p>
       </div>
       <WeeklyTable data={tableData} periods={periodsPerDay} />
     </div>

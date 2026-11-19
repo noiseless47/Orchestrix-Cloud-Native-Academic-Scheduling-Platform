@@ -1,6 +1,6 @@
 # EKS Infrastructure Deployment - Troubleshooting Guide
 
-This document captures all the issues encountered during the deployment of the RoutineOps EKS infrastructure using Terraform and the solutions implemented.
+This document captures all the issues encountered during the deployment of the Orchestrix EKS infrastructure using Terraform and the solutions implemented.
 
 ## Overview
 - **Cluster**: routineops-dev-eks (v1.30)

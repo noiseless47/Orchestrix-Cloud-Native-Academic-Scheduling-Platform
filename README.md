@@ -1,4 +1,4 @@
-# RoutineOps-Cloud-native-Microservices-Platfor 
+# Orchestrix - Cloud-Native Academic Scheduling Platform
 
 > **DevOps-driven full-stack routine generator** End-to-end cloud-native DevOps project: AWS infrastructure with Terraform, containerized microservices with Docker, Kubernetes deployment, automated CI/CD pipelines, and Prometheus-Grafana monitoring. 
 ---
@@ -30,7 +30,7 @@
 
 ## Project Overview
 
-**RoutineOps-Cloud-native-Microservices-Platform** is a department-level routine (class schedule / timetable) generator built for university use. It lets department admins create, manage, and export course routines, while the backend enforces business rules (clash detection, room availability, etc.) and persists data in MongoDB.
+**Orchestrix - Cloud-Native Academic Scheduling Platform** is a department-level routine (class schedule / timetable) generator built for university use. It lets department admins create, manage, and export course routines, while the backend enforces business rules (clash detection, room availability, etc.) and persists data in MongoDB.
 
 The project was designed with a **DevOps-first mindset** — every layer (local dev, staging, production) is infrastructure-as-code, containerized, and continuously deployed.
 
@@ -56,7 +56,7 @@ The project was designed with a **DevOps-first mindset** — every layer (local 
 ## Architecture & Workflow Diagram
 
 
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/d59719304c7f61e154b5600fdc6b5d94bf2b31e6/assets/Screenshot%202026-04-02%20155523.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-02%20155523.png)
 
 
 **Data Flow (Request Lifecycle):**
@@ -66,7 +66,7 @@ The project was designed with a **DevOps-first mindset** — every layer (local 
 ## Repository Structure
 
 ```
-routineops-platform/
+Orchestrix-Cloud-Native-Academic-Scheduling-Platform/
 ├── .github/
 │   └── workflows/         # GitHub Actions CI/CD pipeline YAMLs
 ├── assets/                # Static assets / screenshots
@@ -121,7 +121,7 @@ routineops-platform/
 ---
 
 ## Step-by-Step Implementation
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/5e3180672c9039aa573bd48a432bdd49670ad961/assets/Screenshot%202026-04-02%20161345.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-02%20161345.png)
 ### Step 1 — Project Scaffolding
 
 Created the monorepo structure with two separate services (`backend/`, `frontend/`) at the root so Docker Compose and Kubernetes can treat them as independent build contexts.
@@ -133,7 +133,7 @@ Created the monorepo structure with two separate services (`backend/`, `frontend
 ---
 
 ### Step 2 — Backend (Express + MongoDB)
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/4b266c717a4f8018a058b027a2fe44439ae7f1f8/assets/Screenshot%202026-04-02%20161404.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-02%20161404.png)
 **Stack:** Express 4, Mongoose 8, Morgan (HTTP logger), dotenv, CORS.
 
 Key decisions:
@@ -150,7 +150,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 ---
 
 ### Step 3 — Frontend (Next.js + Tailwind)
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/22820b9ce2193bf95f03cf716eeed19188d9ccd2/assets/Screenshot%202026-04-01%20171146.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20171146.png)
 **Stack:** Next.js 16 (App Router), React 18, TypeScript 5.4, Tailwind CSS 3, Zustand 4 (global state), TanStack Query 5 (server state / caching), Framer Motion (animations), jsPDF + html2canvas (PDF export).
 
 Key decisions:
@@ -166,7 +166,7 @@ Each service has its own `Dockerfile` following multi-stage build best practices
 
 **Backend Dockerfile pattern:**
 ```dockerfile
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
@@ -176,12 +176,12 @@ CMD ["node", "src/server.js"]
 
 **Frontend Dockerfile pattern (multi-stage):**
 ```dockerfile
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -189,7 +189,7 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 ENV NODE_ENV=production
 COPY --from=builder /app/.next/standalone ./
 CMD ["node", "server.js"]
@@ -271,7 +271,7 @@ Apply order: `vpc → eks → ecr → iam → ingress → monitoring → cicd`
 The GitHub Actions IAM user credentials (created by `cicd.tf`) are stored as GitHub Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`).
 
 ---
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/4b33f12830aa594476349df0b6828d83d08a09f2/assets/Screenshot%202026-04-01%20172220.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20172220.png)
 ### Step 9 — Monitoring & HPA
 
 - **HPA (`hpa.yaml`):** Scales backend pods from 1 to 5 replicas when CPU > 70%.
@@ -289,7 +289,7 @@ The GitHub Actions IAM user credentials (created by `cicd.tf`) are stored as Git
 ---
 
 ## Problems Faced & How I Solved Them
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/8a89292dd73b2e9d09fd5d11ec854fcbe62b370d/assets/Screenshot%202026-04-01%20171415.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20171415.png)
 ### Problem 1 — Backend crashed before MongoDB was ready
 
 **Symptom:** On `docker compose up`, the backend container exited with `MongoNetworkError: connect ECONNREFUSED` because it started before MongoDB finished initializing.
@@ -307,7 +307,7 @@ depends_on:
 ---
 
 ### Problem 2 — `NEXT_PUBLIC_API_URL` was undefined in production
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/ce0738495fde497d663fdc9d6139c28cd1df3168/assets/Screenshot%202026-04-01%20171937.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20171937.png)
 **Symptom:** All API calls from the browser hit `undefined/api/...` and failed with a network error.
 
 **Root Cause:** Next.js bakes `NEXT_PUBLIC_*` variables into the client bundle at **build time**, not runtime. Setting the env var in the Compose `environment` block only affects server-side runtime — the already-built JS bundle doesn't pick it up. 
@@ -349,7 +349,7 @@ resource "aws_iam_role_policy_attachment" "ecr_read" {
 ---
 
 ### Problem 4 — MongoDB data lost on pod restart
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/b6505f88bd81b7ca279ca2985bc7b3c840e2b9b0/assets/Screenshot%202026-04-01%20172738.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20172738.png)
 **Symptom:** Every time the MongoDB pod restarted, all data was gone.
 
 **Root Cause:** The MongoDB Deployment was using an `emptyDir` volume, which is ephemeral and destroyed when the pod restarts.
@@ -371,7 +371,7 @@ volumeClaimTemplates:
 ---
 
 ### Problem 5 — HPA not scaling (unknown CPU metrics)
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/389d5264fc50a380b1cf38c220b49377fb178e08/assets/Screenshot%202026-04-01%20172614.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20172614.png)
 **Symptom:** `kubectl get hpa` showed `<unknown>/70%` for CPU and never triggered scaling.
 
 **Root Cause:** HPA requires the Kubernetes Metrics Server to be running, and pods must have `resources.requests.cpu` defined. Neither was configured.
@@ -393,7 +393,7 @@ resources:
 ---
 
 ### Problem 6 — Terraform state conflicts in team environment
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/75937b6f04d51ade7b01680cf1bafc2e35f5541b/assets/Screenshot%202026-04-02%20162010.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-02%20162010.png)
 **Symptom:** Two contributors running `terraform apply` simultaneously caused state corruption and duplicate resources.
 
 **Root Cause:** Local state file was being used — no locking mechanism.
@@ -415,7 +415,7 @@ terraform {
 ---
 
 ### Problem 7 — CORS errors between frontend and backend in Docker
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/8cbc579ec90551cc1500aae047a1cb3462fef4c4/assets/Screenshot%202026-04-01%20171724.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20171724.png)
 **Symptom:** Browser console showed `Access to XMLHttpRequest blocked by CORS policy` when the frontend made API calls.
 
 **Root Cause:** `CORS_ORIGIN` was hardcoded to `localhost:3000` in the backend — but in Docker, the frontend's actual origin as seen by the browser was `http://localhost:3000` (host machine), not the container name.
@@ -436,7 +436,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN }));
 ---
 
 ### Problem 8 — GitHub Actions deploy failed due to stale kubeconfig
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/cfa0623e91dd6c802d7d4f869a23019529485a39/assets/Screenshot%202026-04-01%20172019.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20172019.png)
 **Symptom:** CI pipeline threw `error: the server doesn't have a resource type "deployment"` even though the cluster existed.
 
 **Root Cause:** The `KUBECONFIG` used by the GitHub Actions runner was either missing or pointing to the wrong cluster context after the EKS cluster was recreated with a new ARN.
@@ -454,7 +454,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN }));
 ---
 
 ## Environment Variables
-![image](https://github.com/abhijitray7810/RoutineOps-Cloud-Native-Microservices-Platform/blob/36bdf2a4b3afae263c233c35be1bbb36a9bbc226/assets/Screenshot%202026-04-01%20171820.png)
+![image](https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/blob/main/assets/Screenshot%202026-04-01%20171820.png)
 ### Backend
 
 | Variable | Required | Default | Description |
@@ -487,12 +487,12 @@ FRONTEND_PORT=3000
 
 ## Running Locally
 
-**Prerequisites:** Docker Desktop (with Compose V2), Node.js 20+ (for local dev without Docker)
+**Prerequisites:** Docker Desktop (with Compose V2), Node.js 24+ (for local dev without Docker)
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/<your-username>/routineops-platform.git
-cd routineops-platform
+git clone https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform.git
+cd Orchestrix-Cloud-Native-Academic-Scheduling-Platform
 
 # 2. Create .env file
 cp .env.example .env

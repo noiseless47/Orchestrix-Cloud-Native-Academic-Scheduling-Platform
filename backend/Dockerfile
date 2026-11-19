@@ -2,7 +2,7 @@
 #  Stage 1 — deps
 #  Install only production dependencies
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 
 # Install dumb-init for proper PID 1 signal handling
 RUN apk add --no-cache dumb-init
@@ -18,7 +18,7 @@ RUN npm ci --omit=dev --ignore-scripts
 # ──────────────────────────────────────────────
 #  Stage 2 — production image
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 # Security: run as non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

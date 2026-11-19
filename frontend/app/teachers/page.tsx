@@ -42,6 +42,7 @@ export default function TeachersPage() {
       <DataTable<Teacher>
         columns={[
           { key: "name", label: "Name" },
+          { key: "department", label: "Department" },
           { key: "teachable", label: "Teachable Subjects" },
           { key: "assigned", label: "Assigned Subjects" },
           { key: "actions", label: "Actions" },
@@ -54,6 +55,8 @@ export default function TeachersPage() {
           switch (columnKey) {
             case "name":
               return item.name;
+            case "department":
+              return item.department;
             case "teachable":
               return renderSubjectList(item.subjects);
             case "assigned":

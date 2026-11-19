@@ -7,6 +7,8 @@ import sectionRoutes from "./routes/sectionRoutes.js";
 import routineRoutes from "./routes/routineRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFound } from "./middleware/notFound.js";
+import { requireSession } from "./middleware/requireSession.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -17,6 +19,9 @@ app.use(morgan("dev"));
 
 // Health
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.use("/api/auth", authRoutes);
+
+app.use("/api", requireSession);
 
 // API base path matches frontend axios baseURL (/api)
 app.use("/api/teachers", teacherRoutes);

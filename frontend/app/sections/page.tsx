@@ -35,6 +35,8 @@ export default function SectionsPage() {
             { key: "name", label: "Name" },
             { key: "department", label: "Department" },
             { key: "year", label: "Year" },
+            { key: "batchYear", label: "Batch" },
+            { key: "semester", label: "Semester" },
           ]}
           rows={list.data ?? []}
           loading={list.isLoading}
@@ -48,6 +50,10 @@ export default function SectionsPage() {
                 return item.department;
               case "year":
                 return item.year;
+              case "batchYear":
+                return item.batchYear ?? "—";
+              case "semester":
+                return item.semester ?? "—";
               default:
                 return null;
             }

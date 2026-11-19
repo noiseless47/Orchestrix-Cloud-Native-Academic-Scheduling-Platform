@@ -2,7 +2,7 @@
 #  Stage 1 — deps
 #  Install ALL dependencies (including devDeps needed for build)
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN npm ci --ignore-scripts
 #  Stage 2 — builder
 #  Run `next build` — produces .next/standalone
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -28,6 +28,8 @@ COPY . .
 # Secret values must NOT go here — use runtime env instead
 ARG NEXT_PUBLIC_API_URL=http://localhost:5000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID=
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 # Disable Next.js telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -38,7 +40,7 @@ RUN npm run build
 #  Stage 3 — runner
 #  Minimal image — only the standalone output
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 
 RUN apk add --no-cache dumb-init
 

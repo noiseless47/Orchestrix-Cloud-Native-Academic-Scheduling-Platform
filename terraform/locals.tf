@@ -18,5 +18,5 @@ locals {
   domain_name = "routineops.local"  # Change to your actual domain
   
   # GitHub repository for CI/CD
-  github_repo = "https://github.com/abhijitray7810/routineops-platform/tree/main"
+  github_repo = "https://github.com/noiseless47/Orchestrix-Cloud-Native-Academic-Scheduling-Platform/tree/main"
 }

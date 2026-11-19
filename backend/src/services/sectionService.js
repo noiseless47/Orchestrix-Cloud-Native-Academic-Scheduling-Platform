@@ -1,12 +1,12 @@
 import { Section } from "../models/Section.js";
 
 export const sectionService = {
-  async createSections({ department, year, names }) {
+  async createSections({ department, year, semester, batchYear, names }) {
     const created = [];
     for (const name of names) {
       const doc = await Section.findOneAndUpdate(
-        { department, year, name },
-        { $setOnInsert: { department, year, name, subjects: [], holidays: [] } },
+        { department, year, semester, batchYear, name },
+        { $setOnInsert: { department, year, semester, batchYear, name, subjects: [], holidays: [] } },
         { new: true, upsert: true }
       );
       created.push(doc);
@@ -33,10 +33,12 @@ export const sectionService = {
     return section.toObject();
   },
 
-  async listByDepartmentYear({ department, year }) {
+  async listByDepartmentYear({ department, year, semester, batchYear }) {
     const query = {};
     if (department != null) query.department = department;
     if (year != null) query.year = year;
+    if (semester != null) query.semester = semester;
+    if (batchYear != null) query.batchYear = batchYear;
     return Section.find(query).lean();
   }
 };

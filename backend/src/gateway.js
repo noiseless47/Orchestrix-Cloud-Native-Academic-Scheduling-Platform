@@ -4,12 +4,13 @@ import http from "http";
 import morgan from "morgan";
 import cors from "cors";
 import { randomUUID } from "crypto";
+import authRoutes from "./routes/authRoutes.js";
+import { readCookie, SESSION_COOKIE_NAME, verifySession } from "./utils/session.js";
 
 dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT || 5000);
-
 const routes = {
   "/api/subjects": process.env.SUBJECTS_URL || "http://subjects:5101",
   "/api/teachers": process.env.TEACHERS_URL || "http://teachers:5102",
@@ -20,6 +21,8 @@ const routes = {
 const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",").filter(Boolean);
 app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : true, credentials: true }));
 app.use(morgan("combined"));
+
+app.use("/api/auth", authRoutes);
 
 app.get("/api/health", async (_req, res) => {
   const checks = await Promise.all(
@@ -35,6 +38,14 @@ app.get("/api/health", async (_req, res) => {
   const services = Object.fromEntries(checks);
   const healthy = Object.values(services).every((status) => status === "up");
   res.status(healthy ? 200 : 503).json({ status: healthy ? "ok" : "degraded", services });
+});
+
+app.use("/api", (req, res, next) => {
+  if (req.path.startsWith("/auth/")) return next();
+  const session = verifySession(readCookie(req, SESSION_COOKIE_NAME));
+  if (!session) return res.status(401).json({ message: "Sign-in required" });
+  req.user = session;
+  return next();
 });
 
 app.use("/api", (req, res) => {

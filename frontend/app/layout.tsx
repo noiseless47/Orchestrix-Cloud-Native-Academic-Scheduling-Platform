@@ -7,8 +7,8 @@ import AppShell from "@/components/layout/AppShell";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Department Routine Generator",
-  description: "Generate and manage academic schedules",
+  title: "Orchestrix | Cloud-Native Academic Scheduling Platform",
+  description: "Plan and manage academic schedules with Orchestrix.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

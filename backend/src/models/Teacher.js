@@ -6,6 +6,9 @@ const TeacherSchema = new mongoose.Schema(
     email: { type: String, trim: true },
     department: { type: String, required: true, trim: true },
     subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subject" }],
+    maxClassesPerDay: { type: Number, min: 1, max: 24, default: undefined },
+    maxClassesPerWeek: { type: Number, min: 1, max: 168, default: undefined },
+    maxConsecutiveClasses: { type: Number, min: 1, max: 24, default: undefined },
     availability: {
       type: [
         new mongoose.Schema(

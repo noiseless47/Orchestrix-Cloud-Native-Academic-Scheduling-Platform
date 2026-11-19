@@ -7,8 +7,8 @@ async function fetchSubjects() {
 }
 
 export const teacherService = {
-  async createTeacher({ name, department, email, subjectIds }) {
-    return Teacher.create({ name, department, email, subjects: subjectIds });
+  async createTeacher({ name, department, email, subjectIds, ...constraints }) {
+    return Teacher.create({ name, department, email, subjects: subjectIds, ...constraints });
   },
 
   async listTeachers(department) {

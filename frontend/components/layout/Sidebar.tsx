@@ -19,8 +19,8 @@ export default function Sidebar({ open, onClose }: { open?: boolean; onClose?: (
     {open && <button aria-label="Close navigation" className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm md:hidden" onClick={onClose} />}
     <aside id="main-navigation" aria-label="Main navigation" className={cn("app-sidebar", open ? "app-sidebar-open" : "")}>
       <div className="sidebar-brand">
-        <div className="brand-mark"><span>R</span><i /></div>
-        <div><div className="brand-name">routine<span>ops</span></div><div className="brand-caption">ACADEMIC PLANNER</div></div>
+        <div className="brand-mark"><span>O</span><i /></div>
+        <div><div className="brand-name">orchestri<span>x</span></div><div className="brand-caption">ACADEMIC PLANNER</div></div>
         <button className="sidebar-close" aria-label="Close navigation" onClick={onClose}><X size={18} /></button>
       </div>
       <div className="workspace-switch"><div className="workspace-avatar">DW</div><div className="min-w-0"><div className="workspace-name">Department workspace</div><div className="workspace-sub">Academic planning</div></div><Settings2 size={16} className="ml-auto text-slate-400" /></div>

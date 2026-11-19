@@ -36,7 +36,7 @@ docker-compose down
 ### Option 2: Manual Deployment
 
 **Prerequisites:**
-- Node.js 18+
+- Node.js 24+
 - MongoDB 5.0+
 - PM2 (for process management)
 
